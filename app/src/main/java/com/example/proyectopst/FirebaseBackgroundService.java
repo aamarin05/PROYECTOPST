@@ -91,7 +91,11 @@ public class FirebaseBackgroundService extends Service {
             String equipo = snapshot.child("equipo").getValue(String.class);
             String temperatura = snapshot.child("temperatura").getValue(String.class);
             String humedad = snapshot.child("humedad").getValue(String.class);
+            String sensorGas = snapshot.child("sensorGas").getValue(String.class);
 
+            long timestamp = snapshot.child("timestamp").getValue(Long.class);
+            long diff = System.currentTimeMillis() - timestamp;
+            long minutesAgo = diff / (1000 * 60);
             Log.d(TAG, "Medición recibida - equipo: " + equipo + ", temp: " + temperatura + ", hum: " + humedad);
 
             if (equipo != null) {
@@ -114,8 +118,9 @@ public class FirebaseBackgroundService extends Service {
                         String mensaje = "Equipo: " + equipo +
                                 "\nZona: " + zona +
                                 "\nTemp: " + (temperatura != null ? temperatura : "N/A") +
-                                "\nHum: " + (humedad != null ? humedad : "N/A");
-
+                                "\nHum: " + (humedad != null ? humedad : "N/A")+
+                                "\nGas: " + (sensorGas != null ? sensorGas : "N/A") +
+                                "\nÚltima medición: hace " + minutesAgo + " min";
                         // Llamar a tu función que muestra/actualiza la notificación
                         showNotification("Medición actual", mensaje);
                     }
