@@ -18,8 +18,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -154,14 +157,26 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // ======= Aquí está la actualización en tiempo real =======
     private void startRealtimeListeners() {
         if (medicionesRef == null) return;
 
-        Query lastMedicionQuery = medicionesRef.orderByChild("timestamp").limitToLast(10);
-        lastMedicionQuery.addValueEventListener(new ValueEventListener() {
+        medicionesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot medicionSnapshot : snapshot.getChildren()) {
+                if (!snapshot.exists()) return;
+
+                List<DataSnapshot> medicionesList = new ArrayList<>();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    medicionesList.add(child);
+                }
+
+                Collections.reverse(medicionesList); // últimos primero
+
+                boolean cocinaActualizada = false;
+                boolean salaActualizada = false;
+
+                for (DataSnapshot medicionSnapshot : medicionesList) {
                     String equipo = medicionSnapshot.child("equipo").getValue(String.class);
                     String tempStr = medicionSnapshot.child("temperatura").getValue(String.class);
                     String humStr = medicionSnapshot.child("humedad").getValue(String.class);
@@ -172,7 +187,18 @@ public class MainActivity extends AppCompatActivity {
                             double temp = Double.parseDouble(tempStr);
                             double hum = Double.parseDouble(humStr);
                             double gas = Double.parseDouble(gasStr);
-                            updateDashboard(equipo, temp, hum, gas);
+
+                            // Actualiza solo si la zona no ha sido actualizada
+                            if (equipo.equalsIgnoreCase("E02") && !cocinaActualizada) {
+                                updateDashboard(equipo, temp, hum, gas);
+                                cocinaActualizada = true;
+                            } else if (equipo.equalsIgnoreCase("E01") && !salaActualizada) {
+                                updateDashboard(equipo, temp, hum, gas);
+                                salaActualizada = true;
+                            }
+
+                            if (cocinaActualizada && salaActualizada) break;
+
                         } catch (NumberFormatException e) {
                             Log.e(TAG, "Error parsing numbers: " + e.getMessage());
                         }
@@ -193,13 +219,16 @@ public class MainActivity extends AppCompatActivity {
         equiposRef.child(equipo).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
-                String zona = snap.child("zona").getValue(String.class);
+                // CORREGIR: usar "Zona" con mayúscula
+                String zona = snap.child("Zona").getValue(String.class);
                 if (zona != null) {
                     if (zona.equalsIgnoreCase("ZonaDeEstar")) {
                         updateSalaUI(temp, hum, gas);
                     } else if (zona.equalsIgnoreCase("Cocina")) {
                         updateCocinaUI(temp, hum, gas);
                     }
+                } else {
+                    Log.d(TAG, "Zona es null para equipo: " + equipo);
                 }
             }
 
@@ -278,4 +307,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-

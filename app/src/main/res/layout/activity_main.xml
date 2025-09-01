@@ -14,9 +14,10 @@
         android:layout_marginTop="32dp"
         android:fontFamily="sans-serif-medium"
         android:text="@string/real_time_sensor_data"
+        android:textAlignment="center"
         android:textColor="@color/gray_900"
         android:textSize="28sp"
-        android:textStyle="bold"
+        android:textStyle="normal|bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -40,10 +41,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="16dp"
+                android:gravity="center_horizontal"
                 android:text="@string/room_title"
+                android:textAlignment="textStart"
                 android:textColor="@color/gray_900"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -78,7 +80,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/temperature"
                             android:textColor="@color/white"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -87,7 +89,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/white"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="25.4 °C" />
                     </LinearLayout>
@@ -116,7 +118,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/humidity"
                             android:textColor="@color/white"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -125,7 +127,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/white"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="62 %" />
                     </LinearLayout>
@@ -154,7 +156,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/co_level"
                             android:textColor="@color/black"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -163,7 +165,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/black"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="5 ppm" />
                     </LinearLayout>
@@ -213,7 +215,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/temperature"
                             android:textColor="@color/white"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -222,7 +224,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/white"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="28.1 °C" />
                     </LinearLayout>
@@ -251,7 +253,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/humidity"
                             android:textColor="@color/white"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -260,7 +262,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/white"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="75 %" />
                     </LinearLayout>
@@ -289,7 +291,7 @@
                             android:layout_height="wrap_content"
                             android:text="@string/co_level"
                             android:textColor="@color/black"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <TextView
@@ -298,7 +300,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:textColor="@color/black"
-                            android:textSize="32sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             tools:text="52 ppm" />
                     </LinearLayout>

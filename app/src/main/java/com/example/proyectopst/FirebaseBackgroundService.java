@@ -7,15 +7,24 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import androidx.core.app.NotificationCompat;
+import android.util.Log;
 
 import com.google.firebase.database.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class FirebaseBackgroundService extends Service {
 
     private static final String CHANNEL_ID = "mediciones_channel";
     private static final int NOTIFICATION_ID = 1;
+    private static final String TAG = "FirebaseBGService";
+
     private DatabaseReference measurementsRef;
     private NotificationManager notificationManager;
+
+    // Guardar última medición por zona
+    private Map<String, String> lastMeasurements = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -42,44 +51,82 @@ public class FirebaseBackgroundService extends Service {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setSmallIcon(android.R.drawable.ic_dialog_alert) // Icono genérico
+                .setSmallIcon(android.R.drawable.ic_dialog_alert)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setOngoing(true) // Mantiene la notificación visible
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setOngoing(true)
                 .build();
     }
 
     private void setupFirebaseListener() {
         measurementsRef = FirebaseDatabase.getInstance().getReference("mediciones");
 
-        // Usar ValueEventListener para obtener siempre la última medición
-        measurementsRef.orderByChild("timestamp").limitToLast(1)
-                .addValueEventListener(new ValueEventListener() {
+        // Solo traemos la última medición de cada sensor
+        measurementsRef.orderByChild("timestamp").limitToLast(50)
+                .addChildEventListener(new ChildEventListener() {
                     @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            for (DataSnapshot child : snapshot.getChildren()) {
-                                updateNotification(child);
-                            }
-                        }
+                    public void onChildAdded(DataSnapshot snapshot, String previousChildName) {
+                        updateMeasurement(snapshot);
                     }
 
                     @Override
+                    public void onChildChanged(DataSnapshot snapshot, String previousChildName) {
+                        updateMeasurement(snapshot);
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot snapshot) {}
+
+                    @Override
+                    public void onChildMoved(DataSnapshot snapshot, String previousChildName) {}
+
+                    @Override
                     public void onCancelled(DatabaseError error) {
-                        System.out.println("Firebase error: " + error.getMessage());
+                        Log.e(TAG, "Firebase error: " + error.getMessage());
                     }
                 });
     }
 
-    private void updateNotification(DataSnapshot snapshot) {
+    private void updateMeasurement(DataSnapshot snapshot) {
         if (snapshot.exists()) {
-            // Convertir a String para asegurar compatibilidad
-            String temperatura = String.valueOf(snapshot.child("temperatura").getValue());
-            String humedad = String.valueOf(snapshot.child("humedad").getValue());
-            String gas = String.valueOf(snapshot.child("gas").getValue());
+            String equipo = snapshot.child("equipo").getValue(String.class);
+            String temperatura = snapshot.child("temperatura").getValue(String.class);
+            String humedad = snapshot.child("humedad").getValue(String.class);
 
-            String message = "Temperatura: " + temperatura + "°C, Humedad: " + humedad + "%, Gas: " + gas + " ppm";
-            showNotification("Nueva medición recibida", message);
+            Log.d(TAG, "Medición recibida - equipo: " + equipo + ", temp: " + temperatura + ", hum: " + humedad);
+
+            if (equipo != null) {
+                // Obtener DIRECTAMENTE la Zona del equipo
+                DatabaseReference zonaRef = FirebaseDatabase.getInstance()
+                        .getReference("equipos").child(equipo).child("Zona");
+
+                zonaRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String zona = "N/A";
+                        if (dataSnapshot.exists()) {
+                            zona = dataSnapshot.getValue(String.class);
+                            Log.d(TAG, "Zona obtenida: " + zona);
+                        } else {
+                            Log.d(TAG, "No se encontró Zona para el equipo: " + equipo);
+                        }
+
+                        // Construir mensaje de notificación con todos los datos
+                        String mensaje = "Equipo: " + equipo +
+                                "\nZona: " + zona +
+                                "\nTemp: " + (temperatura != null ? temperatura : "N/A") +
+                                "\nHum: " + (humedad != null ? humedad : "N/A");
+
+                        // Llamar a tu función que muestra/actualiza la notificación
+                        showNotification("Medición actual", mensaje);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "Error al obtener Zona: " + databaseError.getMessage());
+                    }
+                });
+
+            }
         }
     }
 
