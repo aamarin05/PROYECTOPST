@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ProyectoPST</string>
+    <string name="app_name">Calidad</string>
     <string name="real_time_sensor_data">Datos de Sensores en Tiempo Real</string>
     <string name="room_title">Sala</string>
     <string name="kitchen_title">Cocina</string>
