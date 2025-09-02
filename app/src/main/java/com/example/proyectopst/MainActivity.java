@@ -20,9 +20,14 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_NOTIF = 1001;
 
     // UI
-    private TextView salaTempTextView, salaHumTextView, salaCoTextView;
+    private TextView salaTempTextView, salaHumTextView, salaCoTextView,salaTimeTextView, cocinaTimeTextView;
     private MaterialCardView salaTempCardView, salaHumCardView, salaCoCardView;
     private TextView cocinaTempTextView, cocinaHumTextView, cocinaCoTextView;
     private MaterialCardView cocinaTempCardView, cocinaHumCardView, cocinaCoCardView;
@@ -72,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initUI() {
         salaTempTextView = findViewById(R.id.sala_temp_value);
+        salaTimeTextView = findViewById(R.id.sala_last_update);
         salaHumTextView = findViewById(R.id.sala_hum_value);
         salaCoTextView = findViewById(R.id.sala_co_value);
         salaTempCardView = findViewById(R.id.sala_temp_card);
@@ -79,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         salaCoCardView = findViewById(R.id.sala_co_card);
 
         cocinaTempTextView = findViewById(R.id.cocina_temp_value);
+        cocinaTimeTextView = findViewById(R.id.cocina_last_update);
         cocinaHumTextView = findViewById(R.id.cocina_hum_value);
         cocinaCoTextView = findViewById(R.id.cocina_co_value);
         cocinaTempCardView = findViewById(R.id.cocina_temp_card);
@@ -181,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
                     String tempStr = medicionSnapshot.child("temperatura").getValue(String.class);
                     String humStr = medicionSnapshot.child("humedad").getValue(String.class);
                     String gasStr = medicionSnapshot.child("gas").getValue(String.class);
+                    String timeStr = medicionSnapshot.child("timestamp").getValue(String.class);
 
                     if (equipo != null && tempStr != null && humStr != null && gasStr != null) {
                         try {
@@ -190,10 +198,10 @@ public class MainActivity extends AppCompatActivity {
 
                             // Actualiza solo si la zona no ha sido actualizada
                             if (equipo.equalsIgnoreCase("E02") && !cocinaActualizada) {
-                                updateDashboard(equipo, temp, hum, gas);
+                                updateDashboard(equipo, temp, hum, gas,timeStr);
                                 cocinaActualizada = true;
                             } else if (equipo.equalsIgnoreCase("E01") && !salaActualizada) {
-                                updateDashboard(equipo, temp, hum, gas);
+                                updateDashboard(equipo, temp, hum, gas,timeStr);
                                 salaActualizada = true;
                             }
 
@@ -212,9 +220,43 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    private String getTimeAgo(String timeStr) {
+        try {
+            // Parsear el timestamp de la base de datos
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date pastDate = sdf.parse(timeStr);
+            long pastTime = pastDate.getTime();
 
-    private void updateDashboard(String equipo, double temp, double hum, double gas) {
+            // Tiempo actual
+            long now = System.currentTimeMillis();
+            long diff = now - pastTime;
+
+            // Convertir a diferentes unidades de tiempo
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(diff);
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(diff);
+            long hours = TimeUnit.MILLISECONDS.toHours(diff);
+            long days = TimeUnit.MILLISECONDS.toDays(diff);
+
+            // Determinar el mensaje apropiado
+            if (seconds < 60) {
+                return "hace unos segundos";
+            } else if (minutes < 60) {
+                return "hace " + minutes + " minuto" + (minutes > 1 ? "s" : "");
+            } else if (hours < 24) {
+                return "hace " + hours + " hora" + (hours > 1 ? "s" : "");
+            } else {
+                return "hace " + days + " día" + (days > 1 ? "s" : "");
+            }
+
+        } catch (ParseException e) {
+            Log.e(TAG, "Error parsing timestamp: " + timeStr, e);
+            return "fecha desconocida";
+        }
+    }
+
+    private void updateDashboard(String equipo, double temp, double hum, double gas, String timeStr) {
         if (equiposRef == null) return;
+        String timeAgo = getTimeAgo(timeStr);
 
         equiposRef.child(equipo).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -223,9 +265,9 @@ public class MainActivity extends AppCompatActivity {
                 String zona = snap.child("Zona").getValue(String.class);
                 if (zona != null) {
                     if (zona.equalsIgnoreCase("ZonaDeEstar")) {
-                        updateSalaUI(temp, hum, gas);
+                        updateSalaUI(temp, hum, gas,timeAgo);
                     } else if (zona.equalsIgnoreCase("Cocina")) {
-                        updateCocinaUI(temp, hum, gas);
+                        updateCocinaUI(temp, hum, gas,timeAgo);
                     }
                 } else {
                     Log.d(TAG, "Zona es null para equipo: " + equipo);
@@ -239,11 +281,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateSalaUI(double temp, double hum, double gas) {
+    private void updateSalaUI(double temp, double hum, double gas, String timeStr) {
         runOnUiThread(() -> {
             salaTempTextView.setText(String.format("%.1f °C", temp));
             salaHumTextView.setText(String.format("%.0f %%", hum));
             salaCoTextView.setText(String.format("%.0f ppm", gas));
+            salaTimeTextView.setText(String.format("Última Actualización: %s", timeStr));
+
 
             updateCardColor(salaTempCardView, temp, salaTempMax, "temp");
             updateCardColor(salaHumCardView, hum, salaHumMax, "hum");
@@ -251,11 +295,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateCocinaUI(double temp, double hum, double gas) {
+    private void updateCocinaUI(double temp, double hum, double gas, String timeStr) {
         runOnUiThread(() -> {
             cocinaTempTextView.setText(String.format("%.1f °C", temp));
             cocinaHumTextView.setText(String.format("%.0f %%", hum));
             cocinaCoTextView.setText(String.format("%.0f ppm", gas));
+            cocinaTimeTextView.setText(String.format("Última Actualización: %s", timeStr));
 
             updateCardColor(cocinaTempCardView, temp, cocinaTempMax, "temp");
             updateCardColor(cocinaHumCardView, hum, cocinaHumMax, "hum");

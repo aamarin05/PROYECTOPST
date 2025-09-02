@@ -38,17 +38,31 @@
             android:padding="16dp">
 
             <!-- Dashboard 1: Sala -->
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:gravity="center_horizontal"
-                android:text="@string/room_title"
-                android:textAlignment="textStart"
-                android:textColor="@color/gray_900"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/room_title"
+                    android:textColor="@color/gray_900"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/sala_last_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Última actualización: --"
+                    android:textColor="@color/gray_600"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <GridLayout
                 android:layout_width="match_parent"
@@ -174,16 +188,32 @@
             </GridLayout>
 
             <!-- Dashboard 2: Cocina -->
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
                 android:layout_marginTop="24dp"
-                android:layout_marginBottom="16dp"
-                android:text="@string/kitchen_title"
-                android:textColor="@color/gray_900"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/kitchen_title"
+                    android:textColor="@color/gray_900"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/cocina_last_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Última actualización: --"
+                    android:textColor="@color/gray_600"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
 
             <GridLayout
                 android:layout_width="match_parent"

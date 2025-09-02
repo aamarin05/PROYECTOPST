@@ -24,7 +24,7 @@ public class FirebaseBackgroundService extends Service {
     private NotificationManager notificationManager;
 
     // Guardar última medición por zona
-    private Map<String, String> lastMeasurements = new HashMap<>();
+    private Map<String, String> zonasCache = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -91,7 +91,7 @@ public class FirebaseBackgroundService extends Service {
             String equipo = snapshot.child("equipo").getValue(String.class);
             String temperatura = snapshot.child("temperatura").getValue(String.class);
             String humedad = snapshot.child("humedad").getValue(String.class);
-
+            String gas = snapshot.child("gas").getValue(String.class);
             Log.d(TAG, "Medición recibida - equipo: " + equipo + ", temp: " + temperatura + ", hum: " + humedad);
 
             if (equipo != null) {
@@ -111,9 +111,10 @@ public class FirebaseBackgroundService extends Service {
                         }
 
                         // Construir mensaje de notificación con todos los datos
-                        String mensaje = "Equipo: " + equipo +
-                                "\nZona: " + zona +
+                        String mensaje =
+                                "Zona: " + zona +
                                 "\nTemp: " + (temperatura != null ? temperatura : "N/A") +
+                                "\ngas: " + (gas != null ? gas : "N/A") +
                                 "\nHum: " + (humedad != null ? humedad : "N/A");
 
                         // Llamar a tu función que muestra/actualiza la notificación
